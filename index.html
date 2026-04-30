@@ -1,481 +1,246 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
+<meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>YTGrab</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#090909;--surf:#111;--border:#1e1e1e;
+  --red:#ff2525;--red2:#c01a1a;
+  --white:#efefef;--muted:#4a4a4a;--text:#aaa;--r:10px;
+}
+body{background:var(--bg);color:var(--white);font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:56px 20px 60px}
+.wrap{width:100%;max-width:680px}
 
-  :root {
-    --bg: #090909;
-    --surface: #111111;
-    --border: #1e1e1e;
-    --red: #ff2525;
-    --red-dark: #c01a1a;
-    --white: #efefef;
-    --muted: #4a4a4a;
-    --text: #aaa;
-    --r: 10px;
-  }
+/* header */
+header{display:flex;align-items:center;gap:14px;margin-bottom:48px}
+.logo-box{width:46px;height:46px;background:var(--red);border-radius:10px;display:grid;place-items:center;font-size:20px;flex-shrink:0}
+header h1{font-family:'Bebas Neue',sans-serif;font-size:2.6rem;letter-spacing:3px}
+header h1 span{color:var(--red)}
+.tag{font-size:.75rem;color:var(--muted);letter-spacing:.5px;margin-top:2px}
 
-  body {
-    background: var(--bg);
-    color: var(--white);
-    font-family: 'DM Sans', sans-serif;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 60px 20px 60px;
-  }
+/* card */
+.card{background:var(--surf);border:1px solid var(--border);border-radius:16px;padding:28px;margin-bottom:20px}
+.input-row{display:flex;gap:10px}
+input[type=text]{flex:1;background:var(--bg);border:1px solid var(--border);color:var(--white);font-family:'DM Sans',sans-serif;font-size:.93rem;padding:13px 16px;border-radius:var(--r);outline:none;transition:border-color .2s}
+input:focus{border-color:#333}
+input::placeholder{color:var(--muted)}
+.btn{background:var(--red);color:#fff;border:none;font-family:'Bebas Neue',sans-serif;font-size:1.05rem;letter-spacing:1.5px;padding:13px 26px;border-radius:var(--r);cursor:pointer;white-space:nowrap;transition:background .15s,transform .1s;flex-shrink:0}
+.btn:hover{background:var(--red2)}
+.btn:active{transform:scale(.97)}
+.btn:disabled{background:#1e1e1e;color:#444;cursor:not-allowed;transform:none}
 
-  .wrap { width: 100%; max-width: 680px; }
+/* alerts */
+.alert{display:none;margin-top:14px;border-radius:8px;padding:11px 14px;font-size:.85rem;line-height:1.5}
+.alert.show{display:block}
+.alert.err{background:#160808;border:1px solid #3a1010;color:#e87070}
+.alert.ok{background:#081408;border:1px solid #1a3a1a;color:#6ed66e}
+.alert.warn{background:#0f0e08;border:1px solid #3a3010;color:#d4b96e}
 
-  /* Header */
-  header { display: flex; align-items: center; gap: 14px; margin-bottom: 52px; }
-  .logo-box {
-    width: 46px; height: 46px;
-    background: var(--red);
-    border-radius: 10px;
-    display: grid; place-items: center;
-    font-size: 20px;
-  }
-  header h1 {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 2.6rem;
-    letter-spacing: 3px;
-  }
-  header h1 span { color: var(--red); }
-  .tagline { font-size: 0.78rem; color: var(--muted); letter-spacing: 0.5px; margin-top: 2px; }
+/* divider */
+.div{height:1px;background:var(--border);margin:22px 0}
 
-  /* Card */
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 28px;
-    margin-bottom: 20px;
-  }
+/* preview */
+#preview{display:none}
+#preview.show{display:block}
+.prev-inner{display:flex;gap:16px;align-items:flex-start}
+#thumb{width:150px;height:85px;object-fit:cover;border-radius:8px;background:#1a1a1a;flex-shrink:0}
+.prev-info{flex:1;min-width:0}
+.vtitle{font-size:.95rem;font-weight:500;line-height:1.4;margin-bottom:8px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.vmeta{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:.78rem;color:var(--muted);margin-bottom:14px}
+.dl-btn{display:inline-flex;align-items:center;gap:8px;background:var(--red);color:#fff;border:none;font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:1.5px;padding:12px 22px;border-radius:var(--r);cursor:pointer;transition:background .15s}
+.dl-btn:hover{background:var(--red2)}
+.dl-btn:disabled{background:#1e1e1e;color:#555;cursor:not-allowed}
+.badge{display:inline-flex;align-items:center;background:#1a1a1a;border:1px solid #2a2a2a;color:var(--muted);font-size:.7rem;padding:3px 9px;border-radius:5px;margin-left:8px;vertical-align:middle}
 
-  /* Input */
-  .input-row { display: flex; gap: 10px; }
+/* progress */
+#prog{display:none;margin-top:18px}
+#prog.show{display:block}
+.prog-row{display:flex;align-items:center;gap:10px;font-size:.83rem;color:var(--text);margin-bottom:10px}
+.spinner{width:14px;height:14px;border:2px solid #2a2a2a;border-top-color:var(--red);border-radius:50%;animation:spin .65s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+.track{height:3px;background:#1a1a1a;border-radius:3px;overflow:hidden}
+.fill{height:100%;background:var(--red);border-radius:3px;animation:slide 1.4s ease-in-out infinite}
+@keyframes slide{0%{width:0;margin-left:0}50%{width:60%;margin-left:20%}100%{width:0;margin-left:100%}}
 
-  input[type="text"] {
-    flex: 1;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    color: var(--white);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.93rem;
-    padding: 13px 16px;
-    border-radius: var(--r);
-    outline: none;
-    transition: border-color 0.2s;
-  }
-  input:focus { border-color: #333; }
-  input::placeholder { color: var(--muted); }
+/* cookies notice */
+#cookie-notice{display:none;margin-top:20px}
+#cookie-notice.show{display:block}
 
-  .btn {
-    background: var(--red);
-    color: #fff;
-    border: none;
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.05rem;
-    letter-spacing: 1.5px;
-    padding: 13px 26px;
-    border-radius: var(--r);
-    cursor: pointer;
-    white-space: nowrap;
-    transition: background 0.15s, transform 0.1s;
-    flex-shrink: 0;
-  }
-  .btn:hover { background: var(--red-dark); }
-  .btn:active { transform: scale(0.97); }
-  .btn:disabled { background: #1e1e1e; color: #444; cursor: not-allowed; transform: none; }
+/* how it works */
+.how{padding:20px 24px;background:var(--surf);border:1px solid var(--border);border-radius:14px}
+.how-title{font-size:.72rem;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;margin-bottom:14px}
+.steps{display:flex;gap:0}
+.step{flex:1;display:flex;flex-direction:column;align-items:center;text-align:center;position:relative;font-size:.78rem;color:var(--muted);gap:8px}
+.step::after{content:'';position:absolute;top:14px;left:50%;width:100%;height:1px;background:var(--border);z-index:0}
+.step:last-child::after{display:none}
+.step-n{width:28px;height:28px;background:#1a1a1a;border:1px solid var(--border);border-radius:50%;display:grid;place-items:center;font-size:.75rem;color:var(--red);font-weight:600;position:relative;z-index:1;flex-shrink:0}
 
-  /* Error */
-  .err {
-    display: none;
-    margin-top: 14px;
-    background: #160808;
-    border: 1px solid #3a1010;
-    color: #e87070;
-    border-radius: 8px;
-    padding: 11px 14px;
-    font-size: 0.85rem;
-    line-height: 1.5;
-  }
-  .err.show { display: block; }
-
-  /* Divider */
-  .divider {
-    height: 1px;
-    background: var(--border);
-    margin: 22px 0;
-  }
-
-  /* Preview */
-  #preview { display: none; }
-  #preview.show { display: block; }
-
-  .preview-inner {
-    display: flex;
-    gap: 16px;
-    align-items: flex-start;
-  }
-
-  #thumb {
-    width: 150px;
-    height: 85px;
-    object-fit: cover;
-    border-radius: 8px;
-    background: #1a1a1a;
-    flex-shrink: 0;
-  }
-
-  .preview-info { flex: 1; min-width: 0; }
-  .vtitle {
-    font-size: 0.95rem;
-    font-weight: 500;
-    line-height: 1.4;
-    margin-bottom: 8px;
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-  }
-  .vmeta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px 18px;
-    font-size: 0.78rem;
-    color: var(--muted);
-    margin-bottom: 14px;
-  }
-
-  /* Download button big */
-  .dl-btn {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    background: var(--red);
-    color: #fff;
-    border: none;
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.1rem;
-    letter-spacing: 1.5px;
-    padding: 12px 22px;
-    border-radius: var(--r);
-    cursor: pointer;
-    transition: background 0.15s;
-    text-decoration: none;
-    width: fit-content;
-  }
-  .dl-btn:hover { background: var(--red-dark); }
-  .dl-btn:disabled,
-  .dl-btn.loading {
-    background: #1e1e1e;
-    color: #555;
-    cursor: not-allowed;
-    pointer-events: none;
-  }
-
-  .quality-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    background: #1a1a1a;
-    border: 1px solid #2a2a2a;
-    color: var(--muted);
-    font-size: 0.72rem;
-    padding: 3px 9px;
-    border-radius: 5px;
-    margin-left: 8px;
-    vertical-align: middle;
-    letter-spacing: 0.3px;
-  }
-
-  /* Status bar */
-  #status-bar { display: none; margin-top: 18px; }
-  #status-bar.show { display: block; }
-
-  .status-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 0.83rem;
-    color: var(--text);
-    margin-bottom: 10px;
-  }
-
-  .spinner {
-    width: 14px; height: 14px;
-    border: 2px solid #2a2a2a;
-    border-top-color: var(--red);
-    border-radius: 50%;
-    animation: spin 0.65s linear infinite;
-    flex-shrink: 0;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  .track {
-    height: 3px;
-    background: #1a1a1a;
-    border-radius: 3px;
-    overflow: hidden;
-  }
-  .fill {
-    height: 100%;
-    background: var(--red);
-    border-radius: 3px;
-    width: 0%;
-    transition: width 0.5s ease;
-  }
-  .fill.indeterminate {
-    width: 40% !important;
-    animation: slide 1.2s ease-in-out infinite;
-  }
-  @keyframes slide {
-    0% { margin-left: -40%; }
-    100% { margin-left: 100%; }
-  }
-
-  .success-msg {
-    display: none;
-    margin-top: 14px;
-    background: #081408;
-    border: 1px solid #1a3a1a;
-    color: #6ed66e;
-    border-radius: 8px;
-    padding: 11px 14px;
-    font-size: 0.85rem;
-  }
-  .success-msg.show { display: block; }
-
-  /* How it works */
-  .how {
-    margin-top: 28px;
-    padding: 20px 24px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-  }
-  .how-title {
-    font-size: 0.72rem;
-    letter-spacing: 1.5px;
-    color: var(--muted);
-    text-transform: uppercase;
-    margin-bottom: 14px;
-  }
-  .steps {
-    display: flex;
-    gap: 0;
-    counter-reset: step;
-  }
-  .step {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    position: relative;
-    font-size: 0.8rem;
-    color: var(--muted);
-    gap: 8px;
-  }
-  .step::after {
-    content: '';
-    position: absolute;
-    top: 14px;
-    left: 50%;
-    width: 100%;
-    height: 1px;
-    background: var(--border);
-    z-index: 0;
-  }
-  .step:last-child::after { display: none; }
-  .step-num {
-    width: 28px; height: 28px;
-    background: #1a1a1a;
-    border: 1px solid var(--border);
-    border-radius: 50%;
-    display: grid; place-items: center;
-    font-size: 0.75rem;
-    color: var(--red);
-    font-weight: 600;
-    position: relative;
-    z-index: 1;
-    flex-shrink: 0;
-  }
-
-  @media (max-width: 500px) {
-    .preview-inner { flex-direction: column; }
-    #thumb { width: 100%; height: 160px; }
-    .steps { flex-direction: column; gap: 10px; }
-    .step::after { display: none; }
-    .step { flex-direction: row; text-align: left; }
-  }
+@media(max-width:500px){
+  .prev-inner{flex-direction:column}
+  #thumb{width:100%;height:160px}
+  .steps{flex-direction:column;gap:10px}
+  .step::after{display:none}
+  .step{flex-direction:row;text-align:left}
+}
 </style>
 </head>
 <body>
 <div class="wrap">
 
-  <header>
-    <div class="logo-box">▶</div>
-    <div>
-      <h1>YT<span>GRAB</span></h1>
-      <div class="tagline">BEST QUALITY · DIRECT DOWNLOAD · NO ADS</div>
-    </div>
-  </header>
+<header>
+  <div class="logo-box">▶</div>
+  <div>
+    <h1>YT<span>GRAB</span></h1>
+    <div class="tag">BEST QUALITY · DIRECT DOWNLOAD · NO ADS</div>
+  </div>
+</header>
 
-  <div class="card">
-    <div class="input-row">
-      <input type="text" id="url" placeholder="Paste YouTube link here…" autocomplete="off" />
-      <button class="btn" id="fetch-btn" onclick="fetchInfo()">FETCH</button>
-    </div>
+<div class="card">
+  <div class="input-row">
+    <input type="text" id="url" placeholder="Paste YouTube link here…" autocomplete="off"/>
+    <button class="btn" id="fetch-btn" onclick="fetchInfo()">FETCH</button>
+  </div>
 
-    <div class="err" id="err"></div>
+  <div class="alert err" id="err"></div>
 
-    <!-- Preview -->
-    <div id="preview">
-      <div class="divider"></div>
-      <div class="preview-inner">
-        <img id="thumb" src="" alt="" />
-        <div class="preview-info">
-          <div class="vtitle" id="vtitle"></div>
-          <div class="vmeta">
-            <span id="vuploader"></span>
-            <span id="vduration"></span>
-            <span id="vviews"></span>
-          </div>
-          <div>
-            <button class="dl-btn" id="dl-btn" onclick="startDownload()">
-              ⬇ DOWNLOAD
-            </button>
-            <span class="quality-badge">🎬 MP4 · Best Quality</span>
-          </div>
+  <div id="preview">
+    <div class="div"></div>
+    <div class="prev-inner">
+      <img id="thumb" src="" alt=""/>
+      <div class="prev-info">
+        <div class="vtitle" id="vtitle"></div>
+        <div class="vmeta">
+          <span id="vup"></span>
+          <span id="vdur"></span>
+          <span id="vviews"></span>
+        </div>
+        <div>
+          <button class="dl-btn" id="dl-btn" onclick="startDownload()">⬇ DOWNLOAD</button>
+          <span class="badge">🎬 MP4 · Best Quality</span>
         </div>
       </div>
+    </div>
 
-      <!-- Status -->
-      <div id="status-bar">
-        <div class="divider"></div>
-        <div class="status-row">
-          <div class="spinner"></div>
-          <span id="status-text">Preparing download…</span>
-        </div>
-        <div class="track"><div class="fill indeterminate" id="fill"></div></div>
-      </div>
+    <div id="prog">
+      <div class="div"></div>
+      <div class="prog-row"><div class="spinner"></div><span id="prog-text">Server is streaming your video…</span></div>
+      <div class="track"><div class="fill"></div></div>
+    </div>
 
-      <div class="success-msg" id="success-msg">
-        ✅ Download started! Check your browser's downloads bar.
+    <div class="alert ok" id="ok-msg">✅ Download started! Check your browser's download bar.</div>
+    <div class="alert err" id="err2"></div>
+
+    <div id="cookie-notice">
+      <div class="div"></div>
+      <div class="alert warn show">
+        ⚠️ <strong>Bot detection triggered.</strong> To fix this, upload a <code>cookies.txt</code> from YouTube to your GitHub repo.<br><br>
+        <strong>How:</strong> Install <em>"Get cookies.txt LOCALLY"</em> Chrome extension → go to youtube.com (logged in) → export cookies → upload <code>cookies.txt</code> to your GitHub repo root → Railway will redeploy automatically.
       </div>
     </div>
   </div>
-
-  <!-- How it works -->
-  <div class="how">
-    <div class="how-title">How it works</div>
-    <div class="steps">
-      <div class="step"><div class="step-num">1</div><span>Paste YouTube URL</span></div>
-      <div class="step"><div class="step-num">2</div><span>Click Fetch to preview</span></div>
-      <div class="step"><div class="step-num">3</div><span>Hit Download</span></div>
-      <div class="step"><div class="step-num">4</div><span>File saves to your device</span></div>
-    </div>
-  </div>
-
 </div>
 
+<div class="how">
+  <div class="how-title">How it works</div>
+  <div class="steps">
+    <div class="step"><div class="step-n">1</div><span>Paste YouTube URL</span></div>
+    <div class="step"><div class="step-n">2</div><span>Click Fetch to preview</span></div>
+    <div class="step"><div class="step-n">3</div><span>Hit Download</span></div>
+    <div class="step"><div class="step-n">4</div><span>File saves to your device</span></div>
+  </div>
+</div>
+
+</div>
 <script>
-  let videoTitle = '';
+let videoTitle = '';
+const $ = id => document.getElementById(id);
 
-  const $ = id => document.getElementById(id);
+$('url').addEventListener('keydown', e => { if(e.key==='Enter') fetchInfo(); });
 
-  $('url').addEventListener('keydown', e => {
-    if (e.key === 'Enter') fetchInfo();
-  });
+function fmtViews(n){
+  if(!n) return '';
+  if(n>=1e9) return (n/1e9).toFixed(1)+'B views';
+  if(n>=1e6) return (n/1e6).toFixed(1)+'M views';
+  if(n>=1e3) return (n/1e3).toFixed(0)+'K views';
+  return n+' views';
+}
 
-  function showErr(msg) {
-    const el = $('err');
-    el.textContent = msg;
-    el.classList.add('show');
-  }
-  function hideErr() { $('err').classList.remove('show'); }
+function reset(){
+  $('err').classList.remove('show');
+  $('err2').classList.remove('show');
+  $('ok-msg').classList.remove('show');
+  $('prog').classList.remove('show');
+  $('cookie-notice').classList.remove('show');
+  $('preview').classList.remove('show');
+  $('dl-btn').disabled = false;
+  $('dl-btn').textContent = '⬇ DOWNLOAD';
+}
 
-  function fmtViews(n) {
-    if (!n) return '';
-    if (n >= 1e9) return (n/1e9).toFixed(1)+'B views';
-    if (n >= 1e6) return (n/1e6).toFixed(1)+'M views';
-    if (n >= 1e3) return (n/1e3).toFixed(0)+'K views';
-    return n+' views';
-  }
+async function fetchInfo(){
+  const url = $('url').value.trim();
+  if(!url) return;
+  reset();
+  $('fetch-btn').disabled = true;
+  $('fetch-btn').textContent = '…';
 
-  async function fetchInfo() {
-    const url = $('url').value.trim();
-    if (!url) return;
-    hideErr();
-    $('preview').classList.remove('show');
-    $('success-msg').classList.remove('show');
-    $('status-bar').classList.remove('show');
-    $('fetch-btn').disabled = true;
-    $('fetch-btn').textContent = '…';
-
-    try {
-      const res = await fetch(`/api/info?url=${encodeURIComponent(url)}`);
-      const d = await res.json();
-      if (!res.ok || d.error) { showErr(d.error || 'Could not load video info.'); return; }
-
-      videoTitle = d.title;
-      $('thumb').src = d.thumbnail;
-      $('vtitle').textContent = d.title;
-      $('vuploader').textContent = '👤 ' + d.uploader;
-      $('vduration').textContent = '⏱ ' + d.duration;
-      $('vviews').textContent = fmtViews(d.view_count);
-      $('dl-btn').classList.remove('loading');
-      $('dl-btn').textContent = '⬇ DOWNLOAD';
-      $('preview').classList.add('show');
-    } catch (e) {
-      showErr('Server error. Make sure the server is running.');
-    } finally {
-      $('fetch-btn').disabled = false;
-      $('fetch-btn').textContent = 'FETCH';
+  try{
+    const res = await fetch('/api/info?url='+encodeURIComponent(url));
+    const d = await res.json();
+    if(!res.ok || d.error){
+      $('err').textContent = d.error || 'Could not load video info.';
+      $('err').classList.add('show');
+      // Show cookie notice if bot-blocked
+      if(d.error && (d.error.includes('bot') || d.error.includes('cookies') || d.error.includes('Sign in'))){
+        $('preview').classList.add('show');
+        $('cookie-notice').classList.add('show');
+      }
+      return;
     }
+    videoTitle = d.title;
+    $('thumb').src = d.thumbnail;
+    $('vtitle').textContent = d.title;
+    $('vup').textContent = '👤 '+d.uploader;
+    $('vdur').textContent = '⏱ '+d.duration;
+    $('vviews').textContent = fmtViews(d.view_count);
+    $('preview').classList.add('show');
+  } catch(e){
+    $('err').textContent = 'Cannot reach server.';
+    $('err').classList.add('show');
+  } finally {
+    $('fetch-btn').disabled = false;
+    $('fetch-btn').textContent = 'FETCH';
   }
+}
 
-  function startDownload() {
-    const url = $('url').value.trim();
-    if (!url) return;
+function startDownload(){
+  const url = $('url').value.trim();
+  if(!url) return;
+  $('dl-btn').disabled = true;
+  $('dl-btn').textContent = '⏳ DOWNLOADING…';
+  $('prog').classList.add('show');
+  $('ok-msg').classList.remove('show');
+  $('err2').classList.remove('show');
 
-    // Show status
-    $('dl-btn').classList.add('loading');
-    $('dl-btn').textContent = '⏳ DOWNLOADING…';
-    $('status-bar').classList.add('show');
-    $('status-text').textContent = 'Server is fetching & streaming your video…';
-    $('success-msg').classList.remove('show');
+  const streamUrl = '/api/stream?url='+encodeURIComponent(url)+'&title='+encodeURIComponent(videoTitle);
+  const a = document.createElement('a');
+  a.href = streamUrl;
+  a.download = (videoTitle||'video')+'.mp4';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
 
-    // The browser opens the stream URL as a download
-    // This is the key fix: browser handles the download natively,
-    // no buffering issue, file saves directly as it streams in
-    const streamUrl = `/api/stream?url=${encodeURIComponent(url)}&title=${encodeURIComponent(videoTitle)}`;
-
-    const a = document.createElement('a');
-    a.href = streamUrl;
-    a.download = (videoTitle || 'video') + '.mp4';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-
-    // After a short delay, show success (browser download manager takes over)
-    setTimeout(() => {
-      $('status-bar').classList.remove('show');
-      $('success-msg').classList.add('show');
-      $('dl-btn').classList.remove('loading');
-      $('dl-btn').textContent = '⬇ DOWNLOAD AGAIN';
-    }, 4000);
-  }
+  setTimeout(()=>{
+    $('prog').classList.remove('show');
+    $('ok-msg').classList.add('show');
+    $('dl-btn').disabled = false;
+    $('dl-btn').textContent = '⬇ DOWNLOAD AGAIN';
+  }, 4000);
+}
 </script>
 </body>
 </html>

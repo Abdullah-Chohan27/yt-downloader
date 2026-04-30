@@ -104,7 +104,7 @@ class Handler(BaseHTTPRequestHandler):
 
             cmd = [
                 "yt-dlp",
-                "-f", "bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best",
+              "-f", "bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[height<=720]",    
                 "--merge-output-format", "mp4",
                 "--no-playlist",
             ] + cookies_args() + ["-o", "-", url]

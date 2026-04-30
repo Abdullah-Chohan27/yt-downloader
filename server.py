@@ -5,6 +5,11 @@ import subprocess
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 
+BASE = os.path.dirname(os.path.abspath(__file__))
+COOKIES_FILE = os.path.join(BASE, "cookies.txt")
+
+def cookies_args():
+    return ["--cookies", COOKIES_FILE] if os.path.exists(COOKIES_FILE) else []
 
 def sanitize_url(url):
     url = url.strip()
@@ -14,15 +19,17 @@ def sanitize_url(url):
         return None
     return url
 
-
 def get_video_info(url):
     try:
         result = subprocess.run(
-            ["yt-dlp", "--dump-json", "--no-playlist", url],
+            ["yt-dlp", "--dump-json", "--no-playlist"] + cookies_args() + [url],
             capture_output=True, text=True, timeout=30
         )
         if result.returncode != 0:
-            return None, result.stderr
+            err = result.stderr
+            if "Sign in" in err or "429" in err or "bot" in err.lower():
+                return None, "YouTube blocked this server (bot detection). Upload a fresh cookies.txt to your repo — see the page for instructions."
+            return None, err
         info = json.loads(result.stdout)
         return {
             "title": info.get("title", "Unknown"),
@@ -33,7 +40,6 @@ def get_video_info(url):
         }, None
     except Exception as e:
         return None, str(e)
-
 
 class Handler(BaseHTTPRequestHandler):
     def log_message(self, format, *args):
@@ -72,8 +78,8 @@ class Handler(BaseHTTPRequestHandler):
         path = parsed.path
         qs = parse_qs(parsed.query)
 
-        if path == "/" or path == "/index.html":
-            self.send_static(os.path.join(os.path.dirname(__file__), "index.html"))
+        if path in ("/", "/index.html"):
+            self.send_static(os.path.join(BASE, "index.html"))
 
         elif path == "/api/info":
             url = sanitize_url(qs.get("url", [""])[0])
@@ -87,7 +93,6 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_json(info)
 
         elif path == "/api/stream":
-            # KEY FIX: pipe yt-dlp stdout directly to browser → triggers instant download
             url = sanitize_url(qs.get("url", [""])[0])
             title = qs.get("title", ["video"])[0]
             if not url:
@@ -102,26 +107,18 @@ class Handler(BaseHTTPRequestHandler):
                 "-f", "bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best",
                 "--merge-output-format", "mp4",
                 "--no-playlist",
-                "-o", "-",  # pipe to stdout
-                url
-            ]
+            ] + cookies_args() + ["-o", "-", url]
 
             try:
-                process = subprocess.Popen(
-                    cmd,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.DEVNULL,
-                )
-
+                process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
                 self.send_response(200)
                 self.send_header("Content-Type", "video/mp4")
                 self.send_header("Content-Disposition", f'attachment; filename="{filename}"')
                 self.send_header("Transfer-Encoding", "chunked")
                 self.send_header("Access-Control-Allow-Origin", "*")
                 self.end_headers()
-
                 while True:
-                    chunk = process.stdout.read(65536)  # 64 KB per chunk
+                    chunk = process.stdout.read(65536)
                     if not chunk:
                         break
                     try:
@@ -130,14 +127,15 @@ class Handler(BaseHTTPRequestHandler):
                     except (BrokenPipeError, ConnectionResetError):
                         process.kill()
                         break
-
                 process.wait()
-
             except Exception as e:
                 try:
                     self.send_json({"error": str(e)}, 500)
                 except Exception:
                     pass
+
+        elif path == "/api/cookies-status":
+            self.send_json({"has_cookies": os.path.exists(COOKIES_FILE)})
 
         else:
             self.send_json({"error": "Not found"}, 404)
@@ -145,11 +143,11 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         self.send_json({"error": "Not found"}, 404)
 
-
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8765))
     server = HTTPServer(("0.0.0.0", port), Handler)
     print(f"\n✅ YTGrab running at http://localhost:{port}")
+    print("🍪 cookies.txt:", "FOUND" if os.path.exists(COOKIES_FILE) else "NOT FOUND (may get bot-blocked)")
     print("   Press Ctrl+C to stop.\n")
     try:
         server.serve_forever()
